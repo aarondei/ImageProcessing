@@ -1,4 +1,8 @@
-﻿using System;
+﻿//using WebCamLib;
+
+using AForge.Video;
+using AForge.Video.DirectShow;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,14 +11,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WebCamLib;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
         Bitmap imageB, imageA;
-        Device cam;
+        //Device cam;
+
+        private FilterInfoCollection videoDevices;
+        private VideoCaptureDevice videoSource;
 
         public Form1()
         {
@@ -27,9 +34,9 @@ namespace WindowsFormsApp1
             pictureBox3.BorderStyle = BorderStyle.FixedSingle;
             defaultForm();
 
-            Device[] devices = DeviceManager.GetAllDevices();
-            if (devices.Length > 0)
-                cam = devices[0]; 
+            //Device[] devices = DeviceManager.GetAllDevices();
+            //if (devices.Length > 0)
+            //    cam = devices[0]; 
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -196,7 +203,7 @@ namespace WindowsFormsApp1
                     sepiaG = Math.Min(255, sepiaG);
                     sepiaB = Math.Min(255, sepiaB);
 
-                    Color sepiaPixelColor = Color.FromArgb((int) sepiaR, (int) sepiaG, (int) sepiaB);
+                    Color sepiaPixelColor = Color.FromArgb((int)sepiaR, (int)sepiaG, (int)sepiaB);
 
                     result.SetPixel(x, y, sepiaPixelColor);
                 }
@@ -206,6 +213,11 @@ namespace WindowsFormsApp1
 
         private Bitmap subtract()
         {
+            if (imageA == null)
+            {
+                MessageBox.Show("No background image");
+                return null;
+            }
             Color mygreen = Color.FromArgb(0, 0, 255);
             int greygreen = (mygreen.R + mygreen.G + mygreen.B) / 3;
             int threshold = 5;
@@ -258,6 +270,7 @@ namespace WindowsFormsApp1
             pictureBox3.Image = null;
             imageA = null;
             imageB = null;
+            stopCamera();
             defaultForm();
         }
         
@@ -305,22 +318,24 @@ namespace WindowsFormsApp1
         }
         private void toggleOnToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (cam == null)
-            {
-                MessageBox.Show("No webcam found");
-                return;
-            }
+            //if (cam == null)
+            //{
+            //    MessageBox.Show("No webcam found");
+            //    return;
+            //}
 
-            cam.ShowWindow(pictureBox1);
+            //cam.ShowWindow(pictureBox1);
+            videoSource.Start();
         }
 
         private void toggleOffToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (cam != null)
-            {
-                cam.Stop();
-                pictureBox1.Image = null;
-            }
+            //if (cam != null)
+            //{
+            //    cam.Stop();
+            //    pictureBox1.Image = null;
+            //}
+            stopCamera();
         }
         private void toggleSecondBox(Boolean visible)
         {
@@ -336,6 +351,16 @@ namespace WindowsFormsApp1
             toggleSecondBox(false);
             button3.Text = "Null";
             label1.Text = "No action selected";
+        }
+        private void stopCamera()
+        {
+            if (videoSource != null && videoSource.IsRunning)
+            {
+                videoSource.SignalToStop();
+                videoSource.WaitForStop();
+            }
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = null;
         }
 
 
@@ -357,15 +382,29 @@ namespace WindowsFormsApp1
         }
         private void Form1_Load(object sender, EventArgs e)
         {
+            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            if (videoDevices.Count == 0)
+            {
+                MessageBox.Show("No webcam found");
+                return;
+            }
 
+            // pick first webcam
+            videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
+            videoSource.NewFrame += VideoSource_NewFrame;
+        }
+
+        private void VideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = (Bitmap)eventArgs.Frame.Clone();
+
+            imageB = (Bitmap)eventArgs.Frame.Clone();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (cam != null)
-            {
-                cam.Stop();
-            }
+            stopCamera();
         }
 
         private void pictureBox3_Click(object sender, EventArgs e)

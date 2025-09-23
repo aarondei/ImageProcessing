@@ -1,7 +1,8 @@
 using System;
 using System.Collections;
-using System.Text;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows.Forms;
 
 namespace WebCamLib
 {
