@@ -18,6 +18,7 @@ namespace WindowsFormsApp1
     public partial class Form1 : Form
     {
         Bitmap imageB, imageA;
+        int nWeightMultiplier = -1;
         //Device cam;
 
         private FilterInfoCollection videoDevices;
@@ -95,6 +96,36 @@ namespace WindowsFormsApp1
                 case "Subtract":
                     pictureBox3.Image = subtract();
                     break;
+                case "Smoothen":
+                    pictureBox3.Image = smoothen();
+                    break;
+                case "G Blur":
+                    pictureBox3.Image = gaussianblur();
+                    break;
+                case "Sharpen":
+                    pictureBox3.Image = sharpen();
+                    break;
+                case "Mean Remove":
+                    pictureBox3.Image = meanremoval();
+                    break;
+                case "Emboss LP":
+                    pictureBox3.Image = embosslaplascian();
+                    break;
+                case "Emboss HV":
+                    pictureBox3.Image = embosshorizontalvertical();
+                    break;
+                case "Emboss A":
+                    pictureBox3.Image = embossalldirections();
+                    break;
+                case "Emboss LY":
+                    pictureBox3.Image = embosslossy();
+                    break;
+                case "Emboss HO":
+                    pictureBox3.Image = embosshorizontalonly();
+                    break;
+                case "Emboss VO":
+                    pictureBox3.Image = embossverticalonly();
+                    break;
                 default:
                     MessageBox.Show("No action selected");
                     break;
@@ -143,7 +174,7 @@ namespace WindowsFormsApp1
                     Color pixelColor = imageB.GetPixel(x, y);
 
                     // subtract lightness from 255
-                    Color invertedPixelColor = Color.FromArgb(255 -pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);
+                    Color invertedPixelColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);
                     result.SetPixel(x, y, invertedPixelColor);
                 }
             }
@@ -261,7 +292,7 @@ namespace WindowsFormsApp1
             }
         }
 
-       private void clearToolStripMenuItem_Click(object sender, EventArgs e)
+        private void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // clear form
 
@@ -273,11 +304,12 @@ namespace WindowsFormsApp1
             stopCamera();
             defaultForm();
         }
-        
+
 
         private void basicCopyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
             button3.Text = "Copy";
             label1.Text = "Basic Copy";
         }
@@ -285,6 +317,7 @@ namespace WindowsFormsApp1
         private void greyscaleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
             button3.Text = "Greyscale";
             label1.Text = "Greyscale";
         }
@@ -292,6 +325,7 @@ namespace WindowsFormsApp1
         private void colorInversionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
             button3.Text = "Invert";
             label1.Text = "Color Inversion";
         }
@@ -299,6 +333,7 @@ namespace WindowsFormsApp1
         private void histogramToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
             button3.Text = "Histogram";
             label1.Text = "Histogram";
         }
@@ -306,6 +341,7 @@ namespace WindowsFormsApp1
         private void sepiaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
             button3.Text = "Sepia";
             label1.Text = "Sepia";
         }
@@ -313,6 +349,7 @@ namespace WindowsFormsApp1
         private void subtractToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toggleSecondBox(true);
+            toggleNumericUpDownTool(false);
             button3.Text = "Subtract";
             label1.Text = "Subtraction";
         }
@@ -349,6 +386,7 @@ namespace WindowsFormsApp1
         private void defaultForm()
         {
             toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
             button3.Text = "Null";
             label1.Text = "No action selected";
         }
@@ -406,10 +444,201 @@ namespace WindowsFormsApp1
         {
             stopCamera();
         }
-
         private void pictureBox3_Click(object sender, EventArgs e)
         {
 
+        }
+
+
+        // ----  CONVOLUTION MATRIX CLASS ----
+        private void smoothingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(true);
+            button3.Text = "Smoothen";
+            label1.Text = "Smoothing";
+        }
+
+        private void gaussianBlurToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(true);
+            button3.Text = "G Blur";
+            label1.Text = "Gaussian Blur";
+        }
+
+        private void sharpenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Sharpen";
+            label1.Text = "Sharpen";
+        }
+
+        private void meanRemovalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Mean Remove";
+            label1.Text = "Mean Removal";
+        }
+
+        private void laplascianToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Emboss LP";
+            label1.Text = "Emboss: Laplascian";
+        }
+
+        private void horizontalVerticalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Emboss HV";
+            label1.Text = "Emboss: Horizontal/Vertical";
+        }
+
+        private void allDirectionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Emboss A";
+            label1.Text = "Emboss: All Directions";
+        }
+
+        private void lossyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Emboss LY";
+            label1.Text = "Emboss: Lossy";
+        }
+
+        private void horizontalOnlyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Emboss HO";
+            label1.Text = "Emboss: Horizontal Only";
+        }
+
+        private void verticalOnlyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toggleSecondBox(false);
+            toggleNumericUpDownTool(false);
+            button3.Text = "Emboss VO";
+            label1.Text = "Emboss: Vertical Only";
+        }
+
+        // convolution matrix functions
+
+        private Bitmap smoothen(int nWeight = 1)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetAll(1);
+            m.Pixel = nWeight * nWeightMultiplier;
+            m.Factor = nWeight + 8;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+        private Bitmap gaussianblur(int nWeight = 4)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { 1, 2, 1, 2, nWeight * nWeightMultiplier, 2, 1, 2, 1 });
+            m.Factor = 16;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap sharpen(int nWeight = 11)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { 0, -2, 0, -2, nWeight, -2, 0, -2, 0 });
+            m.Factor = 3;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap meanremoval(int nWeight = 9)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { -1, -1, -1, -1, nWeight, -1, -1, -1, -1 });
+            m.Factor = 1;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap embosslaplascian(int nWeight = 4)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { -1, 0, -1, 0, nWeight, 0, -1, 0, -1 });
+            m.Factor = 1;
+            m.Offset = 127;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap embosshorizontalvertical(int nWeight = 4)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { 0, -1, 0, -1, nWeight, -1, 0, -1, 0 });
+            m.Factor = 1;
+            m.Offset = 127;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap embossalldirections(int nWeight = 8)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { -1, -1, -1, -1, nWeight, -1, -1, -1, -1 });
+            m.Factor = 1;
+            m.Offset = 127;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap embosslossy(int nWeight = 4)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { 1, 2, 1, -2, nWeight, -2, -2, 1, -2 });
+            m.Factor = 1;
+            m.Offset = 127;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap embosshorizontalonly(int nWeight = 2)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { 0, 0, 0, -1, nWeight, -1, 0, 0, 0 });
+            m.Factor = 1;
+            m.Offset = 127;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private Bitmap embossverticalonly(int nWeight = 0)
+        {
+            ConvMatrix m = new ConvMatrix();
+            m.SetManual(new int[] { 0, -1, 0, 0, nWeight, 0, 0, 1, 0 });
+            m.Factor = 1;
+            m.Offset = 127;
+
+            return ConvMatrix.Conv3x3(imageB, m);
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            // increase or decrease nWeight for Convolution Matrix functions
+            nWeightMultiplier = (int)numericUpDown1.Value;
+        }
+
+        private void toggleNumericUpDownTool(bool enable)
+        {
+            numericUpDown1.Enabled = enable;
+            numericUpDown1.Visible = enable;
         }
     }
 }
